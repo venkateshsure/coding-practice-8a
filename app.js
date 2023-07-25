@@ -30,45 +30,39 @@ app.listen(3000, () => {
   console.log("server is running");
 });
 
-//api call 1 /todos/?status=TO%20DO
+//api call 1
 app.get("/todos/", async (req, res) => {
-  const { status } = req.query;
-  const query = `
-         SELECT * FROM todo
-         WHERE status='${status}';`;
-  const response = await db.all(query);
-  res.send(response);
-});
-
-//api call 1.1
-app.get("/todos/", async (req, res) => {
-  const { priority } = req.query;
-  const query = `
-         SELECT * FROM todo
-         WHERE priority='${priority}';`;
-  const response = await db.all(query);
-  res.send(response);
-});
-
-//api call 1.2
-app.get("/todos/", async (req, res) => {
-  const { priority, status } = req.query;
-  console.log(priority);
-  const query = `
+  const { todo, priority, status, search_q } = req.query;
+  if (priority !== undefined && status !== undefined) {
+    const query = `
          SELECT * FROM todo
          WHERE priority='${priority}' AND status='${status}';`;
-  const response = await db.all(query);
-  res.send(response);
-});
-
-//api call 1.3
-app.get("/todos/", async (req, res) => {
-  const { search_q } = req.query;
-  const query = `
+    const response = await db.all(query);
+    res.send(response);
+  } else if (status !== undefined) {
+    const query = `
+      SELECT * FROM todo
+         WHERE status='${status}';`;
+    const response = await db.all(query);
+    res.send(response);
+  } else if (priority !== undefined) {
+    const query = `
+      SELECT * FROM todo
+         WHERE priority='${priority}';`;
+    const response = await db.all(query);
+    res.send(response);
+  } else if (search_q !== undefined) {
+    const query = `
          SELECT * FROM todo
          WHERE todo LIKE '%${search_q}%';`;
-  const response = await db.all(query);
-  res.send(response);
+    const response = await db.all(query);
+    res.send(response);
+  } else {
+    const query = `
+         SELECT * FROM todo;`;
+    const response = await db.all(query);
+    res.send(response);
+  }
 });
 
 //api call 2
@@ -77,7 +71,7 @@ app.get("/todos/:todoId/", async (req, res) => {
   const query = `
          SELECT * FROM todo
          WHERE id=${todoId};`;
-  const response = await db.all(query);
+  const response = await db.get(query);
   res.send(response);
 });
 
@@ -96,33 +90,30 @@ app.post("/todos/", async (req, res) => {
 //api call 4.1
 app.put("/todos/:todoId/", async (req, res) => {
   const { todoId } = req.params;
-  const query = `
+  const { status, priority, todo } = req.body;
+  //console.log(status, priority, todo);
+  if (status !== undefined) {
+    const query = `
          UPDATE todo SET
-         status="Done"
+         status='${status}'
          WHERE id=${todoId};`;
-  const response = await db.run(query);
-  res.send("Status Updated");
-});
-//api call 4.2
-app.put("/todos/:todoId/", async (req, res) => {
-  const { todoId } = req.params;
-  const query = `
+    const response = await db.run(query);
+    res.send("Status Updated");
+  } else if (priority !== undefined) {
+    const query = `
          UPDATE todo SET
-         priority="HIGH"
+         priority= '${priority}'
          WHERE id=${todoId};`;
-  const response = await db.run(query);
-  res.send("Priority Updated");
-});
-
-//api call 4.3
-app.put("/todos/:todoId/", async (req, res) => {
-  const { todoId } = req.params;
-  const query = `
+    const response = await db.run(query);
+    res.send("Priority Updated");
+  } else if (todo !== undefined) {
+    const query = `
          UPDATE todo SET
-         todo="Some Task"
+         todo='${todo}'
          WHERE id=${todoId};`;
-  const response = await db.run(query);
-  res.send("Todo Updated");
+    const response = await db.run(query);
+    res.send("Todo Updated");
+  }
 });
 
 //api call 5
